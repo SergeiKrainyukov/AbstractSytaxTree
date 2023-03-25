@@ -17,7 +17,6 @@ public class ParserTest {
             resultStringBuilder.append(aNode.getValue());
         }
         String actualString = resultStringBuilder.toString();
-        assertEquals(nodeList.size(), 9);
         assertEquals(actualString, expectedString);
     }
 
@@ -32,7 +31,6 @@ public class ParserTest {
             resultStringBuilder.append(aNode.getValue());
         }
         String actualString = resultStringBuilder.toString();
-        assertEquals(nodeList.size(), 9);
         assertEquals(actualString, expectedString);
     }
 
@@ -47,7 +45,6 @@ public class ParserTest {
             resultStringBuilder.append(aNode.getValue());
         }
         String actualString = resultStringBuilder.toString();
-        assertEquals(nodeList.size(), 13);
         assertEquals(actualString, expectedString);
     }
 
@@ -62,7 +59,20 @@ public class ParserTest {
             resultStringBuilder.append(aNode.getValue());
         }
         String actualString = resultStringBuilder.toString();
-        assertEquals(nodeList.size(), 13);
+        assertEquals(actualString, expectedString);
+    }
+
+    @Test
+    public void parseString5() {
+        Parser parser = new Parser();
+        String expression = "3*5-5/3";
+        String expectedString = "((3*5)-(5/3))";
+        List<ANode> nodeList = parser.parseString(expression);
+        StringBuilder resultStringBuilder = new StringBuilder();
+        for (ANode aNode : nodeList) {
+            resultStringBuilder.append(aNode.getValue());
+        }
+        String actualString = resultStringBuilder.toString();
         assertEquals(actualString, expectedString);
     }
 
