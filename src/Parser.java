@@ -4,31 +4,32 @@ import java.util.List;
 
 public class Parser {
 
+    private static final char PLUS = '+';
+    private static final char MINUS = '-';
+    private static final char MULTIPLY = '*';
+    private static final char DIVIDE = '/';
+    private static final char LEFT_BRACKET = '(';
+    private static final char RIGHT_BRACKET = ')';
+
+    private static final String INVALID_CHARACTER_MESSAGE = "Invalid character: ";
+
     public List<ANode> parseString(String expression) {
-        List<ANode> tokens = parse(expression);
-        List<ANode> newTokens = addBrackets(tokens);
-        for (ANode token : newTokens) {
-            System.out.print(token.getValue());
-        }
-        return newTokens;
+        return addBrackets(parse(expression));
     }
 
     public List<ANode> parse(String expression) {
         List<ANode> tokens = new ArrayList<>();
         ANode currentToken = null;
-        for (int i = 0; i < expression.length(); i++) {
-            char c = expression.charAt(i);
 
-            boolean isDigit = Character.isDigit(c);
-            boolean isSymbol = c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')';
+        for (char c : expression.toCharArray()) {
 
-            if (!isDigit && !isSymbol) throw new IllegalArgumentException("Invalid character: " + c);
+            if (!isDigit(c) && !isOperation(c)) throw new IllegalArgumentException(INVALID_CHARACTER_MESSAGE + c);
 
-            if (isDigit && currentToken == null) {
-                currentToken = new ANode("number", Character.toString(c));
+            if (isDigit(c) && currentToken == null) {
+                currentToken = new ANode(NodeType.DIGIT, Character.toString(c));
                 continue;
             }
-            if (isDigit) {
+            if (isDigit(c) && currentToken != null) {
                 String currentTokenValue = currentToken.getValue();
                 String newTokenValue = currentTokenValue + c;
                 currentToken.setValue(newTokenValue);
@@ -38,7 +39,7 @@ public class Parser {
                 tokens.add(currentToken);
                 currentToken = null;
             }
-            tokens.add(new ANode("operator", Character.toString(c)));
+            tokens.add(new ANode(NodeType.OPERATOR, Character.toString(c)));
         }
         if (currentToken != null) {
             tokens.add(currentToken);
@@ -47,10 +48,8 @@ public class Parser {
     }
 
     public List<ANode> addBrackets(List<ANode> tokens) {
-        Integer lowestPriorityOperatorIndex = findLowestPriorityOperator(tokens);
-        if (lowestPriorityOperatorIndex == null) {
-            return tokens;
-        }
+        Integer lowestPriorityOperatorIndex = findLowestPriorityOperatorIndex(tokens);
+        if (lowestPriorityOperatorIndex == null) return tokens;
         List<ANode> leftTokens = tokens.subList(0, lowestPriorityOperatorIndex);
         List<ANode> rightTokens = tokens.subList(lowestPriorityOperatorIndex + 1, tokens.size());
         List<ANode> newTokens = new ArrayList<>(wrapInBracketsIfNeeded(leftTokens));
@@ -60,29 +59,36 @@ public class Parser {
     }
 
     public List<ANode> wrapInBracketsIfNeeded(List<ANode> tokens) {
-        if (tokens.size() <= 1 || tokens.size() % 2 == 0) return tokens;
+        if (tokens.size() <= 1) return tokens;
         List<ANode> newTokens = new ArrayList<>();
-        newTokens.add(new ANode("open_paren", "("));
+        newTokens.add(new ANode(NodeType.LEFT_BRACKET, String.valueOf(LEFT_BRACKET)));
         newTokens.addAll(tokens);
-        newTokens.add(new ANode("close_paren", ")"));
+        newTokens.add(new ANode(NodeType.RIGHT_BRACKET, String.valueOf(RIGHT_BRACKET)));
         return newTokens;
     }
 
-    public Integer findLowestPriorityOperator(List<ANode> tokens) {
-        List<String> operators = Arrays.asList("+", "-", "*", "/");
-        Integer lowestPriorityOperator = null;
+    public Integer findLowestPriorityOperatorIndex(List<ANode> tokens) {
+        List<String> operators = Arrays.asList(String.valueOf(PLUS), String.valueOf(MINUS), String.valueOf(MULTIPLY), String.valueOf(DIVIDE));
+        Integer lowestPriorityOperatorIndex = null;
         int lowestPriority = Integer.MAX_VALUE;
         for (int i = 0; i < tokens.size(); i++) {
             ANode token = tokens.get(i);
-            if (token.getTokenType().equals("operator") && operators.contains(token.getValue())) {
-                int priority = operators.indexOf(token.getValue());
-                if (priority < lowestPriority) {
-                    lowestPriority = priority;
-                    lowestPriorityOperator = i;
-                }
+            if (!(token.getNodeType().equals(NodeType.OPERATOR) && operators.contains(token.getValue()))) continue;
+            int priority = operators.indexOf(token.getValue());
+            if (priority < lowestPriority) {
+                lowestPriority = priority;
+                lowestPriorityOperatorIndex = i;
             }
         }
-        return lowestPriorityOperator;
+        return lowestPriorityOperatorIndex;
+    }
+
+    private boolean isOperation(char c) {
+        return c == PLUS || c == MINUS || c == MULTIPLY || c == DIVIDE || c == LEFT_BRACKET || c == RIGHT_BRACKET;
+    }
+
+    private boolean isDigit(char c) {
+        return Character.isDigit(c);
     }
 }
 
