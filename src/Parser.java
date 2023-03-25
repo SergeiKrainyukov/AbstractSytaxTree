@@ -13,29 +13,32 @@ public class Parser {
         return newTokens;
     }
 
-    // Создайте метод parse для разбора выражения:
     public List<ANode> parse(String expression) {
         List<ANode> tokens = new ArrayList<>();
         ANode currentToken = null;
         for (int i = 0; i < expression.length(); i++) {
             char c = expression.charAt(i);
-            if (Character.isDigit(c)) {
-                if (currentToken == null) {
-                    currentToken = new ANode("number", Character.toString(c));
-                } else {
-                    String currentTokenValue = currentToken.getValue();
-                    String newTokenValue = currentTokenValue + c;
-                    currentToken.setValue(newTokenValue);
-                }
-            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')') {
-                if (currentToken != null) {
-                    tokens.add(currentToken);
-                    currentToken = null;
-                }
-                tokens.add(new ANode("operator", Character.toString(c)));
-            } else {
-                throw new IllegalArgumentException("Invalid character: " + c);
+
+            boolean isDigit = Character.isDigit(c);
+            boolean isSymbol = c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')';
+
+            if (!isDigit && !isSymbol) throw new IllegalArgumentException("Invalid character: " + c);
+
+            if (isDigit && currentToken == null) {
+                currentToken = new ANode("number", Character.toString(c));
+                continue;
             }
+            if (isDigit) {
+                String currentTokenValue = currentToken.getValue();
+                String newTokenValue = currentTokenValue + c;
+                currentToken.setValue(newTokenValue);
+                continue;
+            }
+            if (currentToken != null) {
+                tokens.add(currentToken);
+                currentToken = null;
+            }
+            tokens.add(new ANode("operator", Character.toString(c)));
         }
         if (currentToken != null) {
             tokens.add(currentToken);
@@ -43,7 +46,6 @@ public class Parser {
         return tokens;
     }
 
-    // Создайте метод addBrackets для добавления скобок к выражению:
     public List<ANode> addBrackets(List<ANode> tokens) {
         Integer lowestPriorityOperatorIndex = findLowestPriorityOperator(tokens);
         if (lowestPriorityOperatorIndex == null) {
@@ -57,7 +59,6 @@ public class Parser {
         return wrapInBracketsIfNeeded(newTokens);
     }
 
-    //  Создайте метод wrapInBracketsIfNeeded для обертывания токенов в скобки при необходимости:
     public List<ANode> wrapInBracketsIfNeeded(List<ANode> tokens) {
         if (tokens.size() <= 1 || tokens.size() % 2 == 0) return tokens;
         List<ANode> newTokens = new ArrayList<>();
@@ -67,7 +68,6 @@ public class Parser {
         return newTokens;
     }
 
-    // Создайте метод findLowestPriorityOperator для поиска самого низкоприоритетного оператора:
     public Integer findLowestPriorityOperator(List<ANode> tokens) {
         List<String> operators = Arrays.asList("+", "-", "*", "/");
         Integer lowestPriorityOperator = null;
