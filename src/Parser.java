@@ -13,6 +13,45 @@ public class Parser {
 
     private static final String INVALID_CHARACTER_MESSAGE = "Invalid character: ";
 
+    public final SimpleTreeNode<ANode> root = new SimpleTreeNode<>(new ANode(), null);
+    private final SimpleTree<ANode> simpleTree = new SimpleTree<>(root);
+
+    public SimpleTree<ANode> calculateAST(List<ANode> tokenList) {
+        return AST(tokenList, root);
+    }
+
+    private SimpleTree<ANode> AST(List<ANode> tokenList, SimpleTreeNode<ANode> node) {
+        if (tokenList.size() == 0) return simpleTree;
+        ANode token = tokenList.get(0);
+        if (token.getNodeType().equals(NodeType.LEFT_BRACKET)) {
+            SimpleTreeNode<ANode> newNode = new SimpleTreeNode<>(null, node);
+            simpleTree.AddChild(node, newNode);
+            List<ANode> newList = new ArrayList<>(tokenList);
+            newList.remove(token);
+            return AST(newList, newNode);
+        }
+        if (token.getNodeType().equals(NodeType.RIGHT_BRACKET)) {
+            List<ANode> newList = new ArrayList<>(tokenList);
+            newList.remove(token);
+            return AST(newList, node.Parent);
+        }
+        if (token.getNodeType().equals(NodeType.DIGIT)) {
+            node.NodeValue = token;
+            List<ANode> newList = new ArrayList<>(tokenList);
+            newList.remove(token);
+            return AST(newList, node.Parent);
+        }
+        if (token.getNodeType().equals(NodeType.OPERATOR)) {
+            node.NodeValue = token;
+            SimpleTreeNode<ANode> newNode = new SimpleTreeNode<>(null, node);
+            simpleTree.AddChild(node, newNode);
+            List<ANode> newList = new ArrayList<>(tokenList);
+            newList.remove(token);
+            return AST(newList, newNode);
+        }
+        return simpleTree;
+    }
+
     public List<ANode> parseString(String expression) {
         return addBrackets(parse(expression));
     }

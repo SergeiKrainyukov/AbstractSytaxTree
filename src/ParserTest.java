@@ -76,4 +76,23 @@ public class ParserTest {
         assertEquals(actualString, expectedString);
     }
 
+    @Test
+    public void treeTest() {
+        Parser parser = new Parser();
+        String expression = "3+1";
+        String expectedString = "(3+1)";
+        List<ANode> nodeList = parser.parseString(expression);
+        StringBuilder resultStringBuilder = new StringBuilder();
+        for (ANode aNode : nodeList) {
+            resultStringBuilder.append(aNode.getValue());
+        }
+        String actualString = resultStringBuilder.toString();
+        assertEquals(actualString, expectedString);
+        SimpleTree<ANode> simpleTree = parser.calculateAST(nodeList);
+        assertEquals(simpleTree.Count(), 3);
+        assertEquals(simpleTree.Root.NodeValue.getValue(), "+");
+        assertEquals(simpleTree.Root.Children.get(0).NodeValue.getValue(), "3");
+        assertEquals(simpleTree.Root.Children.get(1).NodeValue.getValue(), "1");
+    }
+
 }
