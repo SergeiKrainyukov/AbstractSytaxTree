@@ -16,6 +16,63 @@ public class Parser {
     public final SimpleTreeNode<ANode> root = new SimpleTreeNode<>(new ANode(), null);
     private final SimpleTree<ANode> simpleTree = new SimpleTree<>(root);
 
+    public void interpretTree() {
+        interpret(root);
+    }
+
+    private void interpret(SimpleTreeNode<ANode> node) {
+        if ((node.equals(root) && node.NodeValue.getNodeType().equals(NodeType.DIGIT))) return;
+        if (node.NodeValue.getNodeType().equals(NodeType.OPERATOR) && checkChildrenOfNodeIsLeafs(node.Children) == null) {
+            node.interpretResult = calculateOperation(Integer.parseInt(node.Children.get(0).NodeValue.getValue()), Integer.parseInt(node.Children.get(1).NodeValue.getValue()), node.NodeValue.getValue());
+            node.translationResult = translate(node.Children.get(0).NodeValue.getValue(), node.Children.get(1).NodeValue.getValue(), node.NodeValue.getValue());
+            node.NodeValue.setValue(String.valueOf(node.interpretResult));
+            node.NodeValue.setNodeType(NodeType.DIGIT);
+            node.Children = null;
+            if ((node.equals(root) && node.NodeValue.getNodeType().equals(NodeType.DIGIT))) return;
+            interpret(node.Parent);
+        }
+        else {
+            SimpleTreeNode<ANode> currentNode = checkChildrenOfNodeIsLeafs(node.Children);
+            if (node.NodeValue.getNodeType().equals(NodeType.OPERATOR) && currentNode != null) {
+                interpret(currentNode);
+            }
+        }
+
+
+    }
+
+    private int calculateOperation(int a, int b, String operation) {
+        char operationChar = operation.charAt(0);
+        switch (operationChar) {
+            case PLUS -> {
+                return a + b;
+            }
+            case MINUS -> {
+                return a - b;
+            }
+            case MULTIPLY -> {
+                return a * b;
+            }
+            case DIVIDE -> {
+                return a / b;
+            }
+            default -> {
+                return 0;
+            }
+        }
+    }
+
+    private String translate(String a, String b, String operation) {
+        return "(" + a + operation + b + ")";
+    }
+
+    private SimpleTreeNode<ANode> checkChildrenOfNodeIsLeafs(List<SimpleTreeNode<ANode>> nodeList) {
+        for (SimpleTreeNode<ANode> node : nodeList) {
+            if (node.NodeValue.getNodeType().equals(NodeType.OPERATOR)) return node;
+        }
+        return null;
+    }
+
     public SimpleTree<ANode> calculateAST(List<ANode> tokenList) {
         return AST(tokenList, root);
     }
